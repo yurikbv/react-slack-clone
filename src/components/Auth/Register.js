@@ -1,31 +1,23 @@
-import React, { Component } from "react";
-import {
-  Grid,
-  Form,
-  Segment,
-  Button,
-  Header,
-  Message,
-  Icon
-} from "semantic-ui-react";
-import { Link } from "react-router-dom";
+import React, { Component } from 'react';
+import { Grid, Form, Segment, Button, Header, Message, Icon } from 'semantic-ui-react';
+import { Link } from 'react-router-dom';
 import md5 from 'md5';
-import firebase from "../../firebase";
+import firebase from '../../firebase';
 
 class Register extends Component {
   state = {
-    username: "",
-    email: "",
-    password: "",
-    passwordConfirmation: "",
+    username: '',
+    email: '',
+    password: '',
+    passwordConfirmation: '',
     errors: [],
     loading: false,
-    usersRef: firebase.database().ref('users')
+    usersRef: firebase.database().ref('users'),
   };
 
   handleChange = event => {
     this.setState({
-      [event.target.name]: event.target.value
+      [event.target.name]: event.target.value,
     });
   };
 
@@ -34,11 +26,11 @@ class Register extends Component {
     let error;
 
     if (this.isFormEmpty(this.state)) {
-      error = { message: "Fill in all fields" };
+      error = { message: 'Fill in all fields' };
       this.setState({ errors: [...errors, error] });
       return false;
-    } else if (this.isPasswordValid(this.state)) {
-      error = { message: "Password is inavalid" };
+    } else if (this.isNotPasswordValid(this.state)) {
+      error = { message: 'Password is inavalid' };
       this.setState({ errors: [...errors, error] });
       return false;
     } else {
@@ -47,23 +39,16 @@ class Register extends Component {
   };
 
   isFormEmpty = ({ username, email, password, passwordConfirmation }) => {
+    return !username.length || !email.length || !password.length || !passwordConfirmation.length;
+  };
+
+  isNotPasswordValid = ({ password, passwordConfirmation }) => {
     return (
-      !username.length ||
-      !email.length ||
-      !password.length ||
-      !passwordConfirmation.length
+      password !== passwordConfirmation || (password.length < 6 || passwordConfirmation.length < 6)
     );
   };
 
-  isPasswordValid = ({ password, passwordConfirmation }) => {
-    return (
-      password !== passwordConfirmation ||
-      (password.length < 6 || passwordConfirmation.length < 6)
-    );
-  };
-
-  displayErrors = errors =>
-    errors.map((item, i) => <p key={i}>{item.message}</p>);
+  displayErrors = errors => errors.map((item, i) => <p key={i}>{item.message}</p>);
 
   handleSubmit = event => {
     if (this.formValid()) {
@@ -73,60 +58,52 @@ class Register extends Component {
         .auth()
         .createUserWithEmailAndPassword(this.state.email, this.state.password)
         .then(createdUser => {
-          console.log(createdUser);
-          createdUser.user.updateProfile({
-            displayName: this.state.username,
-            photoURL:`http://gravatar.com/avatar/${md5(createdUser.user.email)}?d=identicon`
-          })
-          .then( () => {
-            this.saveUser(createdUser).then(() => {
-              console.log('user saved');
+          createdUser
+            .user
+            .updateProfile({
+              displayName: this.state.username,
+              photoURL: `http://gravatar.com/avatar/${md5(createdUser.user.email)}?d`,
             })
-          })
-          .catch( err => {
-            this.setState({
-              errors: [...this.state.errors, err],
-              loading: false
+            .then(() => {
+              this.saveUser(createdUser).then(() => {
+                console.log('user saved');
+              });
             })
-          })
+            .catch(err => {
+              this.setState({
+                errors: [...this.state.errors, err],
+                loading: false,
+              });
+            });
         })
         .catch(error => {
           console.error(error);
           this.setState({
             errors: [...this.state.errors, error],
-            loading: false
+            loading: false,
           });
         });
     }
   };
 
-  saveUser = (createdUser) => {
+  saveUser = createdUser => {
     this.state.usersRef.child(createdUser.user.uid).set({
       name: createdUser.user.displayName,
-      avatar: createdUser.user.photoURL
-    })
-  }
+      avatar: createdUser.user.photoURL,
+    });
+  };
 
   handleInputError = (errors, inputName) => {
-    return errors.some(error => error.message.toLowerCase().includes(inputName))
-      ? "error"
-      : null
-  }
+    return errors.some(error => error.message.toLowerCase().includes(inputName)) ? 'error' : null;
+  };
 
   render() {
-    const {
-      username,
-      email,
-      password,
-      passwordConfirmation,
-      errors,
-      loading
-    } = this.state;
+    const { username, email, password, passwordConfirmation, errors, loading } = this.state;
 
     return (
       <Grid textAlign="center" verticalAlign="middle" className="app">
         <Grid.Column style={{ maxWidth: 450 }}>
-          <Header as="h2" icon color="orange" textAlign="center">
+          <Header as="h1" icon color="orange" textAlign="center">
             <Icon name="puzzle piece" color="orange" />
             Register for DevChat
           </Header>
@@ -151,7 +128,7 @@ class Register extends Component {
                 onChange={this.handleChange}
                 type="email"
                 value={email}
-                className={this.handleInputError(errors,'email')}
+                className={this.handleInputError(errors, 'email')}
               />
               <Form.Input
                 fluid
@@ -162,7 +139,7 @@ class Register extends Component {
                 onChange={this.handleChange}
                 type="password"
                 value={password}
-                className={this.handleInputError(errors,'password')}
+                className={this.handleInputError(errors, 'password')}
               />
               <Form.Input
                 fluid
@@ -173,12 +150,11 @@ class Register extends Component {
                 onChange={this.handleChange}
                 type="password"
                 value={passwordConfirmation}
-                className={this.handleInputError(errors,'password')}
-
+                className={this.handleInputError(errors, 'password')}
               />
               <Button
                 disabled={loading}
-                className={loading ? "loading" : ""}
+                className={loading ? 'loading' : ''}
                 color="orange"
                 fluid
                 size="large"
