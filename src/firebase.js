@@ -3,7 +3,6 @@ import 'firebase/auth';
 import 'firebase/database';
 import 'firebase/storage';
 
-
 let config = {
   apiKey: "AIzaSyAr5SV_tCjXalk9rmqfiXbnoP_UvicC5Jo",
   authDomain: "react-slack-51a2a.firebaseapp.com",
